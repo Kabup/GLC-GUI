@@ -26,7 +26,7 @@
 #include "support.h"
 #include "glc-config.h"
 #include <glib/gprintf.h>
-#include <stdlib.h> // system
+#include <stdlib.h> // system, exit_success
 
 /* --------------------
 * 	Callbacks
@@ -36,8 +36,7 @@
 void on_main_window_show()
 {
 	/* fill combobox */
-	if( read_config() )
-		g_printf( "Error opening config file\n");
+	read_config();
 }
 
 void on_main_window_destroy()
@@ -48,9 +47,9 @@ void on_main_window_destroy()
 
 void on_main_button_edit_clicked()
 {
-	/* set pdata with combo data */
+	/* set pdata with config data */
 	edit_profile();
-	/* call edit window */
+
 	gtk_widget_show( data->edit_window );
 }
 
@@ -93,19 +92,16 @@ void on_prof_button_cancel_clicked()
 
 void on_prof_button_ok_clicked()
 {
-	/* set pdata with combo data */
-	if ( ! new_profile() )
-	{
-		/* show edit window */
+	/* set pdata with defaults */
+	if ( new_profile() == 0 )
 		gtk_widget_show( data->edit_window );
-	}
-	/* close profile window */
+
 	on_prof_window_delete_event();
 }
 
 void on_edit_window_show()
 {
-	fill_edit();
+	pdata_edit();
 }
 
 void on_edit_window_delete_event()
@@ -123,9 +119,8 @@ void on_edit_button_cancel_clicked()
 void on_edit_button_ok_clicked()
 {
 	/* save edit fields */
-	if( write_config() == -1 )
-		g_warning( "Error writing config file.\n" );
-	/* close edit window */
+	write_config();
+
 	on_edit_window_delete_event();
 }
 

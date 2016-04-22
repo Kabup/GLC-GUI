@@ -1,0 +1,16 @@
+For a quick install, just follow these steps:
+
+tar -xzvf glc-gui.version.bz
+cd glc-gui
+make
+make install
+
+note: glc-gui is a interface only, the
+real job is done by glc-capture, you
+can get it from nullkey, here's the
+repository:
+ https://github.com/nullkey/glc/wiki
+
+I'm using a changed version, to work
+with pulseaudio, from swick:
+ https://github.com/swick/glc
