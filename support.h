@@ -12,6 +12,9 @@
 #define CH_GET_WIDGET( builder, name, data ) \
 	CH_GET_OBJECT( builder, name, GTK_WIDGET, data )
 
+extern gint active_profile;
+gint active_profile;
+
 /* Main data structure definition */
 typedef struct _ChData ChData;
 struct _ChData
@@ -71,6 +74,12 @@ struct _ChData
 	/* rec */
 	GtkWidget *rec_window;
 	GtkWidget *rec_textview;
+	/* about window */
+	GtkWidget *basic_menu;
+	GtkWidget *advanced_menu;
+	GtkWidget *about_window;
+	/* basic window */
+	GtkWidget *basic_window;
 };
 
 extern ChData *data;

@@ -26,7 +26,7 @@
 #include "support.h"
 #include "glc-config.h"
 #include <glib/gprintf.h>
-#include <stdlib.h> // system
+#include <stdlib.h> // system, exit_success
 
 /* --------------------
 * 	Callbacks
@@ -36,8 +36,9 @@
 void on_main_window_show()
 {
 	/* fill combobox */
-	if( read_config() )
-		g_printf( "Error opening config file\n");
+	read_config();
+	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), 0 );
+	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ), TRUE );
 }
 
 void on_main_window_destroy()
@@ -48,15 +49,21 @@ void on_main_window_destroy()
 
 void on_main_button_edit_clicked()
 {
-	/* set pdata with combo data */
+	active_profile = gtk_combo_box_get_active( GTK_COMBO_BOX( data->combo_profile ) );
+
+	/* set pdata with config data */
 	edit_profile();
-	/* call edit window */
-	gtk_widget_show( data->edit_window );
+
+	if( gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ) ) == TRUE )
+		gtk_widget_show( data->edit_window );
+	else
+		gtk_widget_show( data->basic_window );
 }
 
 void on_main_button_new_clicked()
 {
 	/* show profile window */
+	active_profile = gtk_combo_box_get_active( GTK_COMBO_BOX( data->combo_profile ) );
 	gtk_widget_show( data->prof_window );
 }
 
@@ -70,6 +77,31 @@ void on_main_button_play_clicked()
 {
 	/* play video */
 	playing();
+}
+
+void on_basic_menu_toggled()
+{
+	if( gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM( data->basic_menu ) ) == TRUE )
+	{
+		gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ), FALSE );
+	} else {
+		gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ), TRUE );
+	}
+}
+
+void on_advanced_menu_toggled()
+{
+	if( gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ) ) == TRUE )
+	{
+		gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->basic_menu ), FALSE );
+	} else {
+		gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->basic_menu ), TRUE );
+	}
+}
+
+void on_about_menu_activate()
+{
+	gtk_widget_show( data->about_window );
 }
 
 void on_prof_window_show()
@@ -93,19 +125,19 @@ void on_prof_button_cancel_clicked()
 
 void on_prof_button_ok_clicked()
 {
-	/* set pdata with combo data */
-	if ( ! new_profile() )
+	/* set pdata with defaults */
+	if ( new_profile() == 0 )
 	{
-		/* show edit window */
+		active_profile++;
 		gtk_widget_show( data->edit_window );
 	}
-	/* close profile window */
+
 	on_prof_window_delete_event();
 }
 
 void on_edit_window_show()
 {
-	fill_edit();
+	pdata_edit();
 }
 
 void on_edit_window_delete_event()
@@ -123,9 +155,9 @@ void on_edit_button_cancel_clicked()
 void on_edit_button_ok_clicked()
 {
 	/* save edit fields */
-	if( write_config() == -1 )
-		g_warning( "Error writing config file.\n" );
-	/* close edit window */
+	write_config();
+	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), active_profile );
+
 	on_edit_window_delete_event();
 }
 
@@ -163,4 +195,29 @@ void on_rec_button_record_clicked()
 	on_rec_window_delete_event();
 }
 
+void on_about_window_delete_event()
+{
+	/* hide window */
+	gtk_widget_hide( data->about_window );
+}
+
+void on_about_window_show()
+{
+	//nothing
+}
+
+void on_eventbox1_button_press_event()
+{
+	gtk_widget_hide( data->about_window );
+}
+
+void on_basic_window_delete_event()
+{
+	gtk_widget_hide( data->basic_window );
+}
+
+void on_basic_window_show()
+{
+	gtk_widget_show( data->basic_window );
+}
 

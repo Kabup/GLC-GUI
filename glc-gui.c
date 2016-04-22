@@ -96,6 +96,10 @@ int main(int argc, char **argv)
 		GW( other_spin_unscaled);
 		GW( rec_window );
 		GW( rec_textview );
+		GW( basic_menu );
+		GW( advanced_menu );
+		GW( about_window );
+		GW( basic_window );
 	#undef GW
 
 	/* connect signals */
