@@ -19,6 +19,8 @@ struct _ChData
 	/* Widgets */
 	GtkWidget *main_window;  	/* Main application window */
 	GtkWidget *combo_profile;   /* profile combobox */
+	GtkWidget *basic_menu;
+	GtkWidget *advanced_menu;
 	GtkWidget *main_button_rec;
 	GtkWidget *main_button_edit;
 	GtkWidget *main_button_new;
@@ -71,6 +73,22 @@ struct _ChData
 	/* rec */
 	GtkWidget *rec_window;
 	GtkWidget *rec_textview;
+	/* about window */
+	GtkWidget *about_window;
+	/* basic window */
+	GtkWidget *basic_window;
+	GtkWidget *basic_entry_filedir;
+	GtkWidget *basic_filedialog;
+	/* play window */
+	GtkWidget *play_window;
+	GtkWidget *play_entry_videofile;
+	GtkWidget *play_textview;
+	GtkWidget *play_check_aoss;
+	GtkWidget *play_radio_youtube;
+	GtkWidget *play_radio_custom;
+	GtkWidget *play_entry_custom;
+	/* filedialog */
+	GtkWidget *filedialog_window;
 };
 
 extern ChData *data;
@@ -99,6 +117,9 @@ struct _PrfData
 	gchar *hotkey, *reload;
 	gboolean pbo, sync, byte, sig, glf;
 	gint comp, uncomp, unscaled;
+	gboolean aoss;
+	gint encode;
+	gchar *script;
 };
 
 extern PrfData *pdata;

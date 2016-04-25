@@ -1,4 +1,6 @@
 /*
+ * GLC-GUI
+ *
  * config.c
  *
  * Copyright 2016 Kabup <kabup@kabup-pc>
@@ -25,300 +27,48 @@
 #include "support.h"
 #include <stdlib.h>     /* getenv, system */
 #include <glib.h>
+#include <limits.h> // PATH_MAX
 
 #define CONF_FILE ".glc-gui"
 
-int read_config()
+GKeyFile *open_keyfile( GKeyFile *keyfile )
 {
-	/* Open config file
-	 * if not exists, create it
-	 * read data and fill the liststore
-	 * set combo with liststore
-	 * enable/disable buttons
-	*/
+	/* open/create config file
+	 * load keyfile with data
+	 * from config file
+	 * exit if fail */
 
-	/* create/open config file */
-	GKeyFile *keyfile;
-	GKeyFileFlags flags = G_KEY_FILE_NONE;
-	GError *error = NULL;
-	/* get filename, create file */
-	char filename[256];
-	sprintf( filename, "%s/%s", getenv( "HOME" ), CONF_FILE );
+	/* get filename */
+	char filename[PATH_MAX];
+	if( sprintf( filename, "%s/%s", getenv( "HOME" ), CONF_FILE ) < 0 )
+	{
+		g_printf( "GLC-GUI ERROR: creating filename - %s\n", filename );
+		exit(1);
+	}
+	/* open/create file */
 	FILE *fp;
-	fp = fopen( filename, "a");
+	fp = fopen( filename, "a"); // open or create file
+	if ( fp == NULL )
+	{
+		g_printf( "GLC-GUI ERROR: creating/opening config file %s\n", filename );
+		exit(1);
+	}
 	fclose(fp);
 	/* open config file */
-	keyfile = g_key_file_new ();
-	if (! g_key_file_load_from_file (keyfile, filename, flags, &error))
-		return(-1);
-
-	/* create list */
-	GtkListStore *liststore;
-	liststore = gtk_list_store_new( 33, G_TYPE_STRING,
-					G_TYPE_STRING, G_TYPE_STRING,
-					G_TYPE_STRING, G_TYPE_STRING,
-					G_TYPE_INT,
-					G_TYPE_INT, G_TYPE_DOUBLE,	G_TYPE_INT,
-					G_TYPE_INT, G_TYPE_INT,	G_TYPE_INT,
-					G_TYPE_INT, G_TYPE_BOOLEAN,
-					G_TYPE_BOOLEAN, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN,
-					G_TYPE_STRING, G_TYPE_BOOLEAN,
-					G_TYPE_BOOLEAN, G_TYPE_BOOLEAN,
-					G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING,
-					G_TYPE_INT,
-					G_TYPE_BOOLEAN, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN,
-					G_TYPE_BOOLEAN, G_TYPE_BOOLEAN,
-					G_TYPE_INT, G_TYPE_INT, G_TYPE_INT );
-	/* create variables */
-	gchar *ls0;
-	gchar *ls1, *ls2, *ls3, *ls4;
-	gint ls5;
-	gint ls6;
-	gdouble ls7;
-	gint ls8, ls9, ls10, ls11, ls12;
-	gboolean ls13;
-	gboolean ls14, ls15, ls16;
-	gchar *ls17;
-	gboolean ls18;
-	gboolean ls19, ls20;
-	gint ls21;
-	gchar *ls22, *ls23;
-	gint ls24;
-	gboolean ls25, ls26, ls27, ls28, ls29;
-	gint ls30, ls31, ls32;
-
-	/* scan keyfile for groups, get values */
-	gchar **listgroups = NULL;
-	gint i, count=0;
-	listgroups = g_key_file_get_groups( keyfile, NULL );
-	for (i=0;listgroups[i] != NULL;i++)
-	{
-		/* get values from config file */
-		ls0 = listgroups[i];
-		ls1 = g_key_file_get_string( keyfile, ls0, "glcpath", NULL );
-		ls2 = g_key_file_get_string( keyfile, ls0, "application", NULL );
-		ls3 = g_key_file_get_string( keyfile, ls0, "outfile", NULL );
-		ls4 = g_key_file_get_string( keyfile, ls0, "logfile", NULL );
-		ls5 = g_key_file_get_integer( keyfile, ls0, "loglvl", NULL );
-		ls6 = g_key_file_get_integer( keyfile, ls0, "video_fps", NULL );
-		ls7 = g_key_file_get_double( keyfile, ls0, "video_resize", NULL );
-		ls8 = g_key_file_get_integer( keyfile, ls0, "video_cropw", NULL );
-		ls9 = g_key_file_get_integer( keyfile, ls0, "video_croph", NULL );
-		ls10 = g_key_file_get_integer( keyfile, ls0, "video_cropx", NULL );
-		ls11 = g_key_file_get_integer( keyfile, ls0, "video_cropy", NULL );
-		ls12 = g_key_file_get_integer( keyfile, ls0, "video_colorspace", NULL);
-		ls13 = g_key_file_get_boolean( keyfile, ls0, "video_lockfps", NULL);
-		ls14 = g_key_file_get_boolean( keyfile, ls0, "audio_disable", NULL );
-		ls15 = g_key_file_get_boolean( keyfile, ls0, "audio_skip", NULL );
-		ls16 = g_key_file_get_boolean( keyfile, ls0, "audio_pulse", NULL );
-		ls17 = g_key_file_get_string( keyfile, ls0, "audio_devices", NULL);
-		ls18 = g_key_file_get_boolean( keyfile, ls0, "audio_sdl", NULL );
-		ls19 = g_key_file_get_boolean( keyfile, ls0, "common_start", NULL);
-		ls20 = g_key_file_get_boolean( keyfile, ls0, "common_draw", NULL);
-		ls21 = g_key_file_get_integer( keyfile, ls0, "common_capbuf", NULL );
-		ls22 = g_key_file_get_string( keyfile, ls0, "common_hotkey", NULL);
-		ls23 = g_key_file_get_string( keyfile, ls0, "common_reload", NULL);
-		ls24 = g_key_file_get_integer( keyfile, ls0, "common_compression", NULL );
-		ls25 = g_key_file_get_boolean( keyfile, ls0, "other_pbo", NULL);
-		ls26 = g_key_file_get_boolean( keyfile, ls0, "other_sync", NULL);
-		ls27 = g_key_file_get_boolean( keyfile, ls0, "other_byte", NULL);
-		ls28 = g_key_file_get_boolean( keyfile, ls0, "other_sig", NULL);
-		ls29 = g_key_file_get_boolean( keyfile, ls0, "other_glf", NULL);
-		ls30 = g_key_file_get_integer( keyfile, ls0, "other_comp", NULL );
-		ls31 = g_key_file_get_integer( keyfile, ls0, "other_uncomp", NULL );
-		ls32 = g_key_file_get_integer( keyfile, ls0, "other_unscaled", NULL );
-		/* store the values in liststore */
-		gtk_list_store_insert_with_values( liststore, NULL, -1,
-								0, ls0, 1, ls1,	2, ls2, 3, ls3,
-								4, ls4, 5, ls5,	6, ls6, 7, ls7,
-								8, ls8, 9, ls9,	10, ls10, 11, ls11,
-								12, ls12, 13, ls13, 14, ls14, 15, ls15,
-								16, ls16, 17, ls17, 18, ls18,
-								19, ls19, 20, ls20, 21, ls21, 22, ls22,
-								23, ls23, 24, ls24,
-								25, ls25, 26, ls26, 27, ls27, 28, ls28,
-								29, ls29, 30, ls30, 31, ls31, 32, ls32,
-										 -1 );
-		count++;
-	}
-	g_strfreev ( listgroups );
-
-	/* save/close keyfile */
-	if ( ! g_key_file_save_to_file( keyfile, filename, &error ) )
-		return(-1);
-	g_key_file_free( keyfile );
-
-	/* set combo with data, point to first row */
-	gtk_combo_box_set_model ( GTK_COMBO_BOX( data->combo_profile ), GTK_TREE_MODEL( liststore ) );
-	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), 0 );
-	/* release liststore */
-	g_object_unref(liststore);
-
-	/* enable/disable buttons */
-	if( count > 0 )
-	{
-		gtk_widget_set_sensitive ( data->main_button_rec, TRUE );
-		gtk_widget_set_sensitive ( data->main_button_edit, TRUE );
-	} else {
-		gtk_widget_set_sensitive ( data->main_button_rec, FALSE );
-		gtk_widget_set_sensitive ( data->main_button_edit, FALSE );
-	}
-
-	return(0);
-}
-
-int write_config ()
-{
-	/* create/open keyfile
-	 * retrieve data from edit window,
-	 * loop through config,
-	 * save in config file (new or old)
-	 */
-
-	/* open or create config file */
-	GKeyFile *keyfile;
 	GKeyFileFlags flags = G_KEY_FILE_NONE;
-	GError *error = NULL;
-	/* get filename, create file */
-	char filename[256];
-	sprintf( filename, "%s/%s", getenv( "HOME" ), CONF_FILE );
-	FILE *fp;
-	fp = fopen( filename, "a");
-	fclose(fp);
-	/* open config file */
-	keyfile = g_key_file_new ();
-	if (! g_key_file_load_from_file (keyfile, filename, flags, &error))
-		return -1;
-
-	gint i;
-	/* get data from edit window */
-	const gchar *ls0 = gtk_label_get_text( GTK_LABEL( data->edit_label ) );
-	const gchar *ls1 = gtk_entry_get_text( GTK_ENTRY( data->edit_entry_glc ) );
-	const gchar *ls2 = gtk_entry_get_text( GTK_ENTRY( data->edit_entry_app ) );
-	const gchar *ls3 = gtk_entry_get_text( GTK_ENTRY( data->edit_entry_out ) );
-	const gchar *ls4 = gtk_entry_get_text( GTK_ENTRY( data->edit_entry_log ) );
-	const gint ls5 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->edit_spin_log ) );
-	const gint ls6 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_fps ) );
-	const gdouble ls7 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_resize ) );
-	const gint ls8 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_w ) );
-	const gint ls9 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_h ) );
-	const gint ls10 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_x ) );
-	const gint ls11 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_y ) );
-	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->video_radio_bgr ) ) )
-		{ i = 1; } else { i = 2; }
-	const gint ls12 = i;
-	const gboolean ls13 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->video_check_lockfps ) );
-	const gboolean ls14 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_disable ) );
-	const gboolean ls15 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_skip ) );
-	const gboolean ls16 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_pulse ) );
-	const gchar *ls17 = gtk_entry_get_text( GTK_ENTRY( data->audio_entry_devices ) );
-	const gboolean ls18 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_sdl ) );
-	const gboolean ls19 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_check_start ) );
-	const gboolean ls20 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_check_draw ) );
-	if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_front ) ) )
-		{ i = 1; } else { i = 2; }
-	const gint ls21 = i;
-	const gchar *ls22 = gtk_entry_get_text( GTK_ENTRY( data->common_entry_hotkey ) );
-	const gchar *ls23 = gtk_entry_get_text( GTK_ENTRY( data->common_entry_reload ) );
-	if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_none ) ) )
+	if ( g_key_file_load_from_file (keyfile, filename, flags, NULL ) == FALSE )
 	{
-		i = 1;
-	} else if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_quicklz ) ) )
-	{
-		i = 2;
-	} else {
-		i = 3;
+		g_printf( "GLC-GUI ERROR: opening config file - %s\n", filename );
+		exit(1); // error reading the file
 	}
-	const gint ls24 = i;
-	const gboolean ls25 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_pbo ) );
-	const gboolean ls26 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_sync ) );
-	const gboolean ls27 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_byte ) );
-	const gboolean ls28 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_sig ) );
-	const gboolean ls29 = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_glf ) );
-	const gint ls30 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_comp ) );
-	const gint ls31 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_uncomp ) );
-	const gint ls32 = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_unscaled ) );
 
-	/* save data in file */
-	g_key_file_set_string( keyfile, ls0, "glcpath", ls1 );
-	g_key_file_set_string( keyfile, ls0, "application", ls2 );
-	g_key_file_set_string( keyfile, ls0, "outfile", ls3 );
-	g_key_file_set_string( keyfile, ls0, "logfile", ls4 );
-	g_key_file_set_integer( keyfile, ls0, "loglvl", ls5 );
-	g_key_file_set_integer( keyfile, ls0, "video_fps", ls6 );
-	g_key_file_set_double( keyfile, ls0, "video_resize", ls7 );
-	g_key_file_set_integer( keyfile, ls0, "video_cropw", ls8 );
-	g_key_file_set_integer( keyfile, ls0, "video_croph", ls9 );
-	g_key_file_set_integer( keyfile, ls0, "video_cropx", ls10 );
-	g_key_file_set_integer( keyfile, ls0, "video_cropy", ls11 );
-	g_key_file_set_integer( keyfile, ls0, "video_colorspace", ls12 );
-	g_key_file_set_boolean( keyfile, ls0, "video_lockfps", ls13 );
-	g_key_file_set_boolean( keyfile, ls0, "audio_disable", ls14 );
-	g_key_file_set_boolean( keyfile, ls0, "audio_skip", ls15 );
-	g_key_file_set_boolean( keyfile, ls0, "audio_pulse", ls16 );
-	g_key_file_set_string( keyfile, ls0, "audio_devices", ls17 );
-	g_key_file_set_boolean( keyfile, ls0, "audio_sdl", ls18 );
-	g_key_file_set_boolean( keyfile, ls0, "common_start", ls19 );
-	g_key_file_set_boolean( keyfile, ls0, "common_draw", ls20 );
-	g_key_file_set_integer( keyfile, ls0, "common_capbuf", ls21 );
-	g_key_file_set_string( keyfile, ls0, "common_hotkey", ls22 );
-	g_key_file_set_string( keyfile, ls0, "common_reload", ls23 );
-	g_key_file_set_integer( keyfile, ls0, "common_compression", ls24 );
-	g_key_file_set_boolean( keyfile, ls0, "other_pbo", ls25 );
-	g_key_file_set_boolean( keyfile, ls0, "other_sync", ls26 );
-	g_key_file_set_boolean( keyfile, ls0, "other_byte", ls27 );
-	g_key_file_set_boolean( keyfile, ls0, "other_sig", ls28 );
-	g_key_file_set_boolean( keyfile, ls0, "other_glf", ls29 );
-	g_key_file_set_integer( keyfile, ls0, "other_comp", ls30 );
-	g_key_file_set_integer( keyfile, ls0, "other_uncomp", ls31 );
-	g_key_file_set_integer( keyfile, ls0, "other_unscaled", ls32 );
-
-	/* save/close keyfile */
-	if ( ! g_key_file_save_to_file( keyfile, filename, &error ) )
-		return(-1);
-	g_key_file_free( keyfile );
-	/* reset combo box */
-	if( read_config() == -1 )
-		return(-1);
-
-	return(0);
+	return( keyfile );
 }
 
-int new_profile()
+void default_pdata( const gchar *profilename )
 {
-	/* check new profile name against
-	 * name profiles in combobox
-	 * return if exists, otherwise
-	 * clear edit window */
-
-	/* profile text is empty? */
-	const gchar *string;
-	string = gtk_entry_get_text( GTK_ENTRY( data->text_profile ) );
-	if ( ! string[0] )
-		return(-1);
-	/* set initial values */
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	model = gtk_combo_box_get_model( GTK_COMBO_BOX( data->combo_profile ) );
-	gint rows = gtk_tree_model_iter_n_children( GTK_TREE_MODEL( model ), NULL );
-	gtk_tree_model_get_iter_first( model, &iter );
-
-	/* loop for duplicate entry */
-	gchar *combo_str = NULL;
-	gint i = 0;
-	for (i=0;i<rows;i++)
-	{
-		/* get value */
-		gtk_tree_model_get( model, &iter, 0, &combo_str, -1 );
-		/* is the same */
-		if ( ! g_strcmp0( string, combo_str ) )
-			return(-1);
-		/* next */
-		gtk_tree_model_iter_next( model, &iter );
-	}
-
-	/* new profile, reset fields with defaults */
-	pdata->profilename = g_strdup( string );
+	/* fill pdata with default values */
+	pdata->profilename = g_strdup( profilename );
 	pdata->glccapture = g_strdup( "" );
 	pdata->application = g_strdup( "" );
 	pdata->outfile = g_strdup( "" );
@@ -351,98 +101,17 @@ int new_profile()
 	pdata->comp = 50;
 	pdata->uncomp = 25;
 	pdata->unscaled = 25;
-
-	/* Free string (if not NULL). */
-	if( combo_str )
-		g_free( combo_str );
-
-	return(0);
-}
-
-void edit_profile()
-{
-	/* get values from combo
-	 * and write them in pdata */
-
-	/* initialize objects */
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	if( ! gtk_combo_box_get_active_iter( GTK_COMBO_BOX( data->combo_profile ), &iter ) )
-		return;
-	model = gtk_combo_box_get_model( GTK_COMBO_BOX( data->combo_profile ) );
-	/* variables */
-	gchar *ls0, *ls1, *ls2, *ls3, *ls4;
-	gint ls5 = 0;
-	gint ls6;
-	gdouble ls7;
-	gint ls8, ls9, ls10, ls11 = 0;
-	gint ls12;
-	gboolean ls13;
-	gboolean ls14, ls15, ls16, ls18;
-	gchar *ls17;
-	gboolean ls19, ls20;
-	gint ls21;
-	gchar *ls22, *ls23;
-	gint ls24;
-	gboolean ls25, ls26, ls27, ls28, ls29;
-	gint ls30, ls31, ls32;
-
-	/* get items from combo */
-	gtk_tree_model_get( model, &iter,
-						 0, &ls0, 1, &ls1, 2, &ls2, 3, &ls3,
-						 4, &ls4, 5, &ls5, 6, &ls6, 7, &ls7,
-						 8, &ls8, 9, &ls9, 10, &ls10, 11, &ls11,
-						 12, &ls12, 13, &ls13, 14, &ls14, 15, &ls15,
-						 16, &ls16, 17, &ls17, 18, &ls18,
-						 19, &ls19, 20, &ls20, 21, &ls21, 22, &ls22,
-						 23, &ls23, 24, &ls24,
-						 25, &ls25, 26, &ls26, 27, &ls27, 28, &ls28,
-						 29, &ls29, 30, &ls30, 31, &ls31, 32, &ls32,
-						  -1 );
-
-	/* set struct with values */
-	pdata->profilename = g_strdup( ls0 );
-	pdata->glccapture = g_strdup( ls1 );
-	pdata->application = g_strdup( ls2 );
-	pdata->outfile = g_strdup( ls3 );
-	pdata->logfile = g_strdup( ls4 );
-	pdata->loglevel = ls5;
-	pdata->fps = ls6;
-	pdata->resize = ls7;
-	pdata->cropw = ls8;
-	pdata->croph = ls9;
-	pdata->cropx = ls10;
-	pdata->cropy = ls11;
-	pdata->colorspace = ls12;
-	pdata->lockfps = ls13;
-	pdata->disable = ls14;
-	pdata->skip = ls15;
-	pdata->pulse = ls16;
-	pdata->devices = g_strdup( ls17 );
-	pdata->sdl = ls18;
-	pdata->start = ls19;
-	pdata->draw = ls20;
-	pdata->capbuf = ls21;
-	pdata->hotkey = g_strdup( ls22 );
-	pdata->reload = g_strdup( ls23 );
-	pdata->compression = ls24;
-	pdata->pbo = ls25;
-	pdata->sync = ls26;
-	pdata->byte = ls27;
-	pdata->sig = ls28;
-	pdata->glf = ls29;
-	pdata->comp = ls30;
-	pdata->uncomp = ls31;
-	pdata->unscaled = ls32;
+	pdata->aoss = FALSE;
+	pdata->encode = 1;
+	pdata->script = g_strdup( "" );
 
 	return;
 }
 
-void fill_edit()
+void pdata_edit()
 {
 	/* fill edit window
-	 * with data from
-	 * pdata */
+	 * with data from pdata */
 
 	gtk_label_set_text( GTK_LABEL( data->edit_label ), pdata->profilename );
 	gtk_entry_set_text( GTK_ENTRY( data->edit_entry_glc ), pdata->glccapture );
@@ -493,6 +162,315 @@ void fill_edit()
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( data->other_spin_comp ), pdata->comp );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( data->other_spin_uncomp ), pdata->uncomp );
 	gtk_spin_button_set_value( GTK_SPIN_BUTTON( data->other_spin_unscaled ), pdata->unscaled );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->play_check_aoss ), pdata->aoss );
+	if ( pdata->encode == 1 )
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->play_radio_youtube ), TRUE );
+	else
+		gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->play_radio_custom ), TRUE );
+	gtk_entry_set_text( GTK_ENTRY( data->play_entry_custom ), pdata->script );
+
+	return;
+}
+
+void edit_pdata()
+{
+	/* fill pdata with edit fields values */
+
+	gint i;
+	pdata->profilename = g_strdup( gtk_label_get_text( GTK_LABEL( data->edit_label ) ) );
+	pdata->glccapture = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->edit_entry_glc ) ) );
+	pdata->application = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->edit_entry_app ) ) );
+	pdata->outfile = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->edit_entry_out ) ) );
+	pdata->logfile = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->edit_entry_log ) ) );
+	pdata->loglevel = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->edit_spin_log ) );
+	pdata->fps = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_fps ) );
+	pdata->resize = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_resize ) );
+	pdata->cropw = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_w ) );
+	pdata->croph = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_h ) );
+	pdata->cropx = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_x ) );
+	pdata->cropy = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->video_spin_crop_y ) );
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->video_radio_bgr ) ) )
+		{ i = 1; } else { i = 2; }
+	pdata->colorspace = i;
+	pdata->lockfps = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->video_check_lockfps ) );
+	pdata->disable = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_disable ) );
+	pdata->skip = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_skip ) );
+	pdata->pulse = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_pulse ) );
+	pdata->devices = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->audio_entry_devices ) ) );
+	pdata->sdl = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->audio_check_sdl ) );
+	pdata->start = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_check_start ) );
+	pdata->draw = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_check_draw ) );
+	if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_front ) ) )
+		{ i = 1; } else { i = 2; }
+	pdata->capbuf = i;
+	pdata->hotkey = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->common_entry_hotkey ) ) );
+	pdata->reload = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->common_entry_reload ) ) );
+	if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_none ) ) )
+	{
+		i = 1;
+	} else if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->common_radio_quicklz ) ) )
+	{
+		i = 2;
+	} else {
+		i = 3;
+	}
+	pdata->compression = i;
+	pdata->pbo = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_pbo ) );
+	pdata->sync = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_sync ) );
+	pdata->byte = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_byte ) );
+	pdata->sig = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_sig ) );
+	pdata->glf = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->other_check_glf ) );
+	pdata->comp = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_comp ) );
+	pdata->uncomp = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_uncomp ) );
+	pdata->unscaled = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->other_spin_unscaled ) );
+	pdata->aoss = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->play_check_aoss ) );
+	if ( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->play_radio_youtube ) ) )
+		i = 1;
+	else
+		i = 2;
+	pdata->encode = i;
+	pdata->script = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->play_entry_custom ) ) );
+
+	return;
+}
+
+int read_config()
+{
+	/* Get group names from config
+	 * fill combo with names
+	 * enable/disable buttons
+	 * return num groups */
+
+	/* get groups list */
+	GKeyFile *keyfile = g_key_file_new ();
+	keyfile = open_keyfile( keyfile );
+	gchar **listgroups = g_key_file_get_groups( keyfile, NULL );
+	g_key_file_free( keyfile );
+
+	/* fill combo with names */
+	GtkListStore *liststore = gtk_list_store_new( 1, G_TYPE_STRING );
+	gchar *groupname;
+	gint i;
+	for (i=0;listgroups[i] != NULL;i++)
+	{
+		groupname = listgroups[i];
+		gtk_list_store_insert_with_values( liststore, NULL, -1,
+								0, groupname, -1 );
+	}
+	g_strfreev ( listgroups );
+
+	/* set combo with data */
+	gtk_combo_box_set_model ( GTK_COMBO_BOX( data->combo_profile ), GTK_TREE_MODEL( liststore ) );
+	/* release liststore */
+	g_object_unref(liststore);
+
+	/* enable/disable buttons */
+	if( i > 0 )
+	{
+		gtk_widget_set_sensitive( data->main_button_rec, TRUE );
+		gtk_widget_set_sensitive( data->main_button_edit, TRUE );
+		gtk_widget_set_sensitive( data->main_button_play, TRUE );
+	} else {
+		gtk_widget_set_sensitive( data->main_button_rec, FALSE );
+		gtk_widget_set_sensitive( data->main_button_edit, FALSE );
+		gtk_widget_set_sensitive( data->main_button_play, FALSE );
+	}
+
+	return(i);
+}
+
+void pdata_config()
+{
+	/* create/open keyfile
+	 * retrieve data from edit window,
+	 * loop through config,
+	 * save in config file (new or old)
+	 */
+
+	/* open config file */
+	GKeyFile *keyfile = g_key_file_new ();
+	keyfile = open_keyfile( keyfile );
+
+	/* save data in file */
+	char *ls0 = pdata->profilename;
+	g_key_file_set_string( keyfile, ls0, "glcpath", pdata->glccapture );
+	g_key_file_set_string( keyfile, ls0, "application", pdata->application );
+	g_key_file_set_string( keyfile, ls0, "outfile", pdata->outfile );
+	g_key_file_set_string( keyfile, ls0, "logfile", pdata->logfile );
+	g_key_file_set_integer( keyfile, ls0, "loglevel", pdata->loglevel );
+	g_key_file_set_integer( keyfile, ls0, "video_fps", pdata->fps );
+	g_key_file_set_double( keyfile, ls0, "video_resize", pdata->resize );
+	g_key_file_set_integer( keyfile, ls0, "video_crop_w", pdata->cropw );
+	g_key_file_set_integer( keyfile, ls0, "video_crop_h", pdata->croph );
+	g_key_file_set_integer( keyfile, ls0, "video_crop_x", pdata->cropx );
+	g_key_file_set_integer( keyfile, ls0, "video_crop_y", pdata->cropy );
+	g_key_file_set_integer( keyfile, ls0, "video_colorspace", pdata->colorspace );
+	g_key_file_set_boolean( keyfile, ls0, "video_lockfps", pdata->lockfps );
+	g_key_file_set_boolean( keyfile, ls0, "audio_disable", pdata->disable );
+	g_key_file_set_boolean( keyfile, ls0, "audio_skip", pdata->skip );
+	g_key_file_set_boolean( keyfile, ls0, "audio_pulse", pdata->pulse );
+	g_key_file_set_string( keyfile, ls0, "audio_devices", pdata->devices );
+	g_key_file_set_boolean( keyfile, ls0, "audio_sdl", pdata->sdl );
+	g_key_file_set_boolean( keyfile, ls0, "common_start", pdata->start );
+	g_key_file_set_boolean( keyfile, ls0, "common_draw", pdata->draw );
+	g_key_file_set_integer( keyfile, ls0, "common_capbuf", pdata->capbuf );
+	g_key_file_set_string( keyfile, ls0, "common_hotkey", pdata->hotkey );
+	g_key_file_set_string( keyfile, ls0, "common_reload", pdata->reload );
+	g_key_file_set_integer( keyfile, ls0, "common_compression", pdata->compression );
+	g_key_file_set_boolean( keyfile, ls0, "other_pbo", pdata->pbo );
+	g_key_file_set_boolean( keyfile, ls0, "other_sync", pdata->sync );
+	g_key_file_set_boolean( keyfile, ls0, "other_byte", pdata->byte );
+	g_key_file_set_boolean( keyfile, ls0, "other_sig", pdata->sig );
+	g_key_file_set_boolean( keyfile, ls0, "other_glf", pdata->glf );
+	g_key_file_set_integer( keyfile, ls0, "other_comp", pdata->comp );
+	g_key_file_set_integer( keyfile, ls0, "other_uncomp", pdata->uncomp );
+	g_key_file_set_integer( keyfile, ls0, "other_unscaled", pdata->unscaled );
+	g_key_file_set_boolean( keyfile, ls0, "play_aoss", pdata->aoss );
+	g_key_file_set_integer( keyfile, ls0, "play_encode", pdata->encode );
+	g_key_file_set_string( keyfile, ls0, "play_script", pdata->script );
+
+	/* save/close keyfile */
+	char filename[PATH_MAX];
+	if( sprintf( filename, "%s/%s", getenv( "HOME" ), CONF_FILE ) < 0 )
+	{
+		g_printf( "GLC-GUI ERROR: creating filename - %s\n", filename );
+		exit(1);
+	}
+	if ( g_key_file_save_to_file( keyfile, filename, NULL ) == FALSE )
+	{
+		g_printf( "GLC-GUI ERROR: saving in config file - %s\n", filename );
+		exit(1);
+	}
+	g_key_file_free( keyfile );
+
+	return;
+}
+
+int new_profile()
+{
+	/* check if new profile name
+	 * is empty or already exists
+	 * if not, fill pdata with defaults */
+
+	/* profile text is empty? */
+	const gchar *profilename;
+	profilename = gtk_entry_get_text( GTK_ENTRY( data->text_profile ) );
+	if ( ! profilename[0] )
+		return(-1); // empty
+
+	/* check profile name with groups */
+	GKeyFile *keyfile = g_key_file_new ();
+	keyfile = open_keyfile( keyfile );
+	gchar **listgroups = g_key_file_get_groups( keyfile, NULL );
+	g_key_file_free( keyfile );
+
+	gint i;
+	for (i=0;listgroups[i] != NULL;i++)
+	{
+		if( g_strcmp0( listgroups[i], profilename ) == 0 )
+			return(-1); // is the same, exit
+	}
+	g_strfreev ( listgroups );
+
+	/* create new profile, set combo */
+	default_pdata( profilename );
+	pdata_config();
+	read_config();
+	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), i );
+
+	return(i);
+}
+
+void config_pdata()
+{
+	/* get profile name from combo
+	 * get values from config
+	 * and write them in pdata */
+
+	/* get profile name
+	 * selected in combo */
+	const gchar *ls0;
+	gtk_combo_box_set_id_column( GTK_COMBO_BOX( data->combo_profile ), 0 );
+	ls0 = gtk_combo_box_get_active_id( GTK_COMBO_BOX( data->combo_profile ) );
+
+	/* open config file */
+	GKeyFile *keyfile = g_key_file_new ();
+	keyfile = open_keyfile( keyfile );
+	/* read keys from config */
+	gchar *ls1 = g_key_file_get_string( keyfile, ls0, "glcpath", NULL );
+	gchar *ls2 = g_key_file_get_string( keyfile, ls0, "application", NULL );
+	gchar *ls3 = g_key_file_get_string( keyfile, ls0, "outfile", NULL );
+	gchar *ls4 = g_key_file_get_string( keyfile, ls0, "logfile", NULL );
+	gint ls5 = g_key_file_get_integer( keyfile, ls0, "loglevel", NULL );
+	gint ls6 = g_key_file_get_integer( keyfile, ls0, "video_fps", NULL );
+	gdouble ls7 = g_key_file_get_double( keyfile, ls0, "video_resize", NULL );
+	gint ls8 = g_key_file_get_integer( keyfile, ls0, "video_crop_w", NULL );
+	gint ls9 = g_key_file_get_integer( keyfile, ls0, "video_crop_h", NULL );
+	gint ls10 = g_key_file_get_integer( keyfile, ls0, "video_crop_x", NULL );
+	gint ls11 = g_key_file_get_integer( keyfile, ls0, "video_crop_y", NULL );
+	gint ls12 = g_key_file_get_integer( keyfile, ls0, "video_colorspace", NULL );
+	gboolean ls13 = g_key_file_get_boolean( keyfile, ls0, "video_lockfps", NULL );
+	gboolean ls14 = g_key_file_get_boolean( keyfile, ls0, "audio_disable", NULL );
+	gboolean ls15 = g_key_file_get_boolean( keyfile, ls0, "audio_skip", NULL );
+	gboolean ls16 = g_key_file_get_boolean( keyfile, ls0, "audio_pulse", NULL );
+	gchar *ls17 = g_key_file_get_string( keyfile, ls0, "audio_devices", NULL );
+	gboolean ls18 = g_key_file_get_boolean( keyfile, ls0, "audio_sdl", NULL );
+	gboolean ls19 = g_key_file_get_boolean( keyfile, ls0, "common_start", NULL );
+	gboolean ls20 = g_key_file_get_boolean( keyfile, ls0, "common_draw", NULL );
+	gint ls21 = g_key_file_get_integer( keyfile, ls0, "common_capbuf", NULL );
+	gchar *ls22 = g_key_file_get_string( keyfile, ls0, "common_hotkey", NULL );
+	gchar *ls23 = g_key_file_get_string( keyfile, ls0, "common_reload", NULL );
+	gint ls24 = g_key_file_get_integer( keyfile, ls0, "common_compression", NULL );
+	gboolean ls25 = g_key_file_get_boolean( keyfile, ls0, "other_pbo", NULL );
+	gboolean ls26 = g_key_file_get_boolean( keyfile, ls0, "other_sync", NULL );
+	gboolean ls27 = g_key_file_get_boolean( keyfile, ls0, "other_byte", NULL );
+	gboolean ls28 = g_key_file_get_boolean( keyfile, ls0, "other_sig", NULL );
+	gboolean ls29 = g_key_file_get_boolean( keyfile, ls0, "other_glf", NULL );
+	gint ls30 = g_key_file_get_integer( keyfile, ls0, "other_comp", NULL );
+	gint ls31 = g_key_file_get_integer( keyfile, ls0, "other_uncomp", NULL );
+	gint ls32 = g_key_file_get_integer( keyfile, ls0, "other_unscaled", NULL );
+	gboolean ls33 = g_key_file_get_boolean( keyfile, ls0, "play_aoss", NULL );
+	gint ls34 = g_key_file_get_integer( keyfile, ls0, "play_encode", NULL );
+	gchar *ls35 = g_key_file_get_string( keyfile, ls0, "play_script", NULL );
+	g_key_file_free( keyfile );
+
+	/* set pdata struct with values */
+	pdata->profilename = g_strdup( ls0 );
+	pdata->glccapture = g_strdup( ls1 );
+	pdata->application = g_strdup( ls2 );
+	pdata->outfile = g_strdup( ls3 );
+	pdata->logfile = g_strdup( ls4 );
+	pdata->loglevel = ls5;
+	pdata->fps = ls6;
+	pdata->resize = ls7;
+	pdata->cropw = ls8;
+	pdata->croph = ls9;
+	pdata->cropx = ls10;
+	pdata->cropy = ls11;
+	pdata->colorspace = ls12;
+	pdata->lockfps = ls13;
+	pdata->disable = ls14;
+	pdata->skip = ls15;
+	pdata->pulse = ls16;
+	pdata->devices = g_strdup( ls17 );
+	pdata->sdl = ls18;
+	pdata->start = ls19;
+	pdata->draw = ls20;
+	pdata->capbuf = ls21;
+	pdata->hotkey = g_strdup( ls22 );
+	pdata->reload = g_strdup( ls23 );
+	pdata->compression = ls24;
+	pdata->pbo = ls25;
+	pdata->sync = ls26;
+	pdata->byte = ls27;
+	pdata->sig = ls28;
+	pdata->glf = ls29;
+	pdata->comp = ls30;
+	pdata->uncomp = ls31;
+	pdata->unscaled = ls32;
+	pdata->aoss = ls33;
+	pdata->encode = ls34;
+	pdata->script = ls35;
 
 	return;
 }
@@ -505,8 +483,8 @@ void recording()
 	 * textview
 	 */
 
-	/* fill pdata from combo */
-	edit_profile();
+	/* fill pdata from keyfile */
+	config_pdata();
 
 	gint mark = 0;
 	gchar commandline[1000]; //how much?
@@ -536,12 +514,10 @@ void recording()
 			sprintf( commandline, "%s --audio-skip ", commandline );
 		if( pdata->pulse )
 			sprintf( commandline, "%s -p ", commandline );
-		else {
-			if( g_strcmp0( pdata->devices, "" ) )
-				sprintf( commandline, "%s -a %s ", commandline, pdata->devices );
-			if( pdata->sdl )
-				sprintf( commandline, "%s -j ", commandline );
-		}
+		if( pdata->sdl )
+			sprintf( commandline, "%s -j ", commandline );
+		if( g_strcmp0( pdata->devices, "" ) )
+			sprintf( commandline, "%s -a %s ", commandline, pdata->devices );
 	}
 	if( pdata->start )
 		sprintf( commandline, "%s -s ", commandline );
@@ -590,12 +566,64 @@ void recording()
 	return;
 }
 
-void playing()
+void glcinfo()
 {
-	/* play */
-	gint i;
-	i = system("cat ~/.glc-gui");
-	i++; // to avoid warning
+	const gchar *filename;
+	filename = gtk_entry_get_text( GTK_ENTRY( data->play_entry_videofile) );
+	gchar commandline[1000];
+	g_sprintf( commandline, "%s -i 1 %s", "glc-play", filename );
 
-	return;
+	FILE *fp;
+	char line[256];
+	char text[5000];
+
+	/* Open the command for reading. */
+	fp = popen( commandline, "r");
+	if (fp == NULL) {
+		printf("Failed to run command\n" );
+		exit(1);
+	}
+	/* Read the output a line at a time - output it. */
+	while (fgets(line, sizeof(line)-1, fp) != NULL) {
+		g_sprintf( text, "%s %s", text, line );
+	}
+	/* close */
+	pclose(fp);
+
+	/* set buffer */
+	GtkTextBuffer *buffer;
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW ( data->play_textview ) );
+	gtk_text_buffer_set_text ( buffer, text, -1 );
 }
+
+void glcplay()
+{
+	const gchar *filename;
+	filename = gtk_entry_get_text( GTK_ENTRY( data->play_entry_videofile) );
+	gchar aoss[] = "aoss";
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->play_check_aoss ) ) == FALSE )
+		g_stpcpy( aoss, "" );
+	gchar commandline[1000];
+	sprintf( commandline, "%s %s %s", aoss, "glc-play", filename );
+	system( commandline );
+}
+
+void encoding()
+{
+	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->play_radio_youtube ) ) )
+	{
+		//youtube ffmpeg
+		//ffmpeg -i input.mov -c:v libx264 -preset slow -crf 18 -c:a libvorbis -q:a 5 -pix_fmt yuv420p output.mkv
+
+
+	} else {
+		gchar *commandline;
+		commandline = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->play_entry_custom ) ) );
+		gchar *glcvideofile;
+		glcvideofile = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->play_entry_videofile ) ) );
+		g_sprintf( commandline, "%s %s\n", commandline, glcvideofile );
+		system( commandline );
+	}
+}
+
+

@@ -1,4 +1,7 @@
-/* glc-gui.c
+/*
+ * GLC-GUI
+ *
+ * glc-gui.c
  *
  * Copyright 2016 Kabup <kabup@kabup-pc>
  *
@@ -50,6 +53,8 @@ int main(int argc, char **argv)
 	#define GW( name ) CH_GET_WIDGET( builder, name, data )
 		GW( main_window );
 		GW( combo_profile );
+		GW( basic_menu );
+		GW( advanced_menu );
 		GW( main_button_rec );
 		GW( main_button_edit );
 		GW( main_button_new );
@@ -96,6 +101,18 @@ int main(int argc, char **argv)
 		GW( other_spin_unscaled);
 		GW( rec_window );
 		GW( rec_textview );
+		GW( about_window );
+		GW( basic_window );
+		GW( basic_entry_filedir );
+		GW( basic_filedialog );
+		GW( play_window );
+		GW( play_entry_videofile );
+		GW( play_check_aoss );
+		GW( play_textview );
+		GW( play_radio_youtube );
+		GW( play_radio_custom );
+		GW( play_entry_custom );
+		GW( filedialog_window );
 	#undef GW
 
 	/* connect signals */

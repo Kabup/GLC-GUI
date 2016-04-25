@@ -1,0 +1,19 @@
+24-04-2016 0.0.5
+-play/encode window created
+-add functionality to play window
+
+23-04-2016 0.0.3
+-fix active profile in combobox
+-created about window
+-better icons
+-'about' menu
+-'basic/advanced options' menu
+-'basic window' created
+
+22-04-2016 0.0.2
+-major reestruct of routines
+-better error handling
+-cleaning of the code
+
+21-04-2016 0.0.1
+initial release
