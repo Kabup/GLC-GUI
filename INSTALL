@@ -19,6 +19,10 @@ tar -xzvf glc-gui.version.bz
 cd glc-gui
 make
 then, just execute glc-gui from the terminal.
+(you can clean up the directory by typing:
+rm *.o *.c *.h README CHANGELOG INSTALL
+and move all the directory
+to another place, if you want).
 
 PS: glc-gui is a interface only, the
 real job is done by glc-capture, you

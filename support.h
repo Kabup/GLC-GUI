@@ -12,6 +12,10 @@
 #define CH_GET_WIDGET( builder, name, data ) \
 	CH_GET_OBJECT( builder, name, GTK_WIDGET, data )
 
+extern gint videotrack;
+extern gint audiotrack;
+gint videotrack, audiotrack;
+
 /* Main data structure definition */
 typedef struct _ChData ChData;
 struct _ChData
@@ -77,8 +81,14 @@ struct _ChData
 	GtkWidget *about_window;
 	/* basic window */
 	GtkWidget *basic_window;
-	GtkWidget *basic_entry_filedir;
-	GtkWidget *basic_filedialog;
+	GtkWidget *basic_entry_outfile;
+	GtkWidget *basic_entry_appfile;
+	GtkWidget *basic_entry_hotkey;
+	GtkWidget *basic_spin_resize;
+	GtkWidget *basic_check_draw;
+	GtkWidget *basic_check_pulse;
+	GtkWidget *basic_combo_devices;
+	GtkWidget *basic_check_disable;
 	/* play window */
 	GtkWidget *play_window;
 	GtkWidget *play_entry_videofile;

@@ -28,8 +28,42 @@
 #include <stdlib.h>     /* getenv, system */
 #include <glib.h>
 #include <limits.h> // PATH_MAX
+#include <libgen.h> // dirname, basename
+#include <stdio.h> // strrchr
+#include <sys/types.h> // stat
+#include <sys/stat.h>
+#include <unistd.h>
 
 #define CONF_FILE ".glc-gui"
+
+int file_exists(const char *fname)
+{
+    FILE *file;
+    file = fopen( fname, "r" );
+    if( file )
+    {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
+void write_textview( GtkWidget *textview, const gchar *message )
+{
+	GtkTextBuffer *buffer;
+	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW ( textview ) );
+	GtkTextIter iter;
+	gtk_text_buffer_get_end_iter( buffer, &iter );
+	gtk_text_buffer_insert( buffer, &iter, message, -1 );
+	gtk_text_view_set_buffer( GTK_TEXT_VIEW( textview ), buffer );
+	//g_free( buffer );
+	int busy_wait = 0;
+	while (gtk_events_pending() || busy_wait < 5)
+	{
+		gtk_main_iteration();
+		if (!gtk_events_pending()) ++busy_wait;
+	}
+}
 
 GKeyFile *open_keyfile( GKeyFile *keyfile )
 {
@@ -234,7 +268,7 @@ void edit_pdata()
 	return;
 }
 
-int read_config()
+int config_combo()
 {
 	/* Get group names from config
 	 * fill combo with names
@@ -375,7 +409,7 @@ int new_profile()
 	/* create new profile, set combo */
 	default_pdata( profilename );
 	pdata_config();
-	read_config();
+	config_combo();
 	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), i );
 
 	return(i);
@@ -492,9 +526,18 @@ void recording()
 	if( ! g_strcmp0( pdata->glccapture, "" ) )
 		pdata->glccapture = "glc-capture";
 	sprintf( commandline, "%s ", pdata->glccapture );
+	// out file
 	if( ! g_strcmp0( pdata->outfile, "" ) )
-		mark = 1;
-	sprintf( commandline, "%s -o %s ", commandline, pdata->outfile );
+		mark = 1; // nothing to do
+	else {
+		struct stat path_stat;
+		stat( pdata->outfile, &path_stat);
+		if( S_ISDIR( path_stat.st_mode ) ) // is directory?
+			sprintf( commandline, "%s -o %s/%%app%%.glc", commandline, pdata->outfile );
+		else
+			sprintf( commandline, "%s -o %s ", commandline, pdata->outfile );
+	}
+	// log file
 	if( g_strcmp0( pdata->logfile, "" ) )
 		sprintf( commandline, "%s -v %d -l %s ", commandline, pdata->loglevel, pdata->logfile );
 	if( pdata->fps != 30 )
@@ -571,21 +614,28 @@ void glcinfo()
 	const gchar *filename;
 	filename = gtk_entry_get_text( GTK_ENTRY( data->play_entry_videofile) );
 	gchar commandline[1000];
-	g_sprintf( commandline, "%s -i 1 %s", "glc-play", filename );
+	g_sprintf( commandline, "glc-play -i 1 %s", filename );
 
 	FILE *fp;
-	char line[256];
-	char text[5000];
-
 	/* Open the command for reading. */
 	fp = popen( commandline, "r");
 	if (fp == NULL) {
 		printf("Failed to run command\n" );
 		exit(1);
 	}
+
+	videotrack=0;
+	audiotrack=0;
+	char line[256]="\0";
+	char text[5000]="\0";
+	gint i;
 	/* Read the output a line at a time - output it. */
 	while (fgets(line, sizeof(line)-1, fp) != NULL) {
 		g_sprintf( text, "%s %s", text, line );
+		if( sscanf( line, "video stream %d", &i ) == 1 )
+			videotrack = i;
+		if( sscanf( line, "audio stream %d", &i ) == 1 )
+			audiotrack = i;
 	}
 	/* close */
 	pclose(fp);
@@ -608,14 +658,71 @@ void glcplay()
 	system( commandline );
 }
 
+void encode_mencoder()
+{
+	/* from https://github.com/nullkey/glc/wiki/Encode */
+	/* get track numbers,
+	 * extract/compress audio,
+	 * extract/compress video */
+
+	glcinfo();
+
+	/* get filename, check if valid */
+	const gchar *filename;
+	filename = gtk_entry_get_text( GTK_ENTRY( data->play_entry_videofile) );
+	if( file_exists( filename ) == 0 )
+		return;
+	/* split filename */
+	gchar *dirn, *basen, *dname, *bname, *ext, *fname;
+	dirn = g_strdup( filename );
+	basen = g_strdup( filename );
+	dname = dirname( dirn );
+	bname = basename( basen );
+	ext = g_strrstr( bname, "." );
+	fname = g_strndup( bname, ext - bname );
+	gchar aname[256];
+	g_sprintf( aname, "%s/temp.mp3", dname );
+
+	/* extract audio file, compress to mp3,
+	 * extract video file, compress with audio */
+	write_textview( data->play_textview, "\n\nencoding... This can take a while.\n" );
+
+	gchar commandline[1000];
+	if( audiotrack != 0 )
+	{
+		g_sprintf( commandline, "glc-play %s -o - -a %d | ffmpeg -i - -codec:a libmp3lame -qscale:a 2 %s", filename, audiotrack, aname );
+		if( system( commandline ) )
+			return;
+	}
+	else {
+		g_sprintf( commandline, "touch %s\n", aname );
+		if( system( commandline ) )
+			return;
+	}
+	if( videotrack != 0 )
+	{
+		// 2 steps encoding
+		g_sprintf( commandline, "glc-play %s -o - -y %d | mencoder -demuxer y4m - -nosound -ovc x264 -x264encopts qp=18:pass=1 -of avi -o %s/%s.avi", filename, videotrack, dname, fname );
+		if( system( commandline ) )
+			return;
+		g_sprintf( commandline, "glc-play %s -o - -y %d | mencoder -demuxer y4m - -audiofile %s -oac copy -ovc x264 -x264encopts qp=18:pass=2 -of avi -o %s/%s.avi", filename, videotrack, aname, dname, fname );
+		if( system( commandline ) )
+			return;
+	}
+
+	/* remove temp audio */
+	remove( aname );
+	g_free( dirn );
+	g_free( basen );
+	g_free( fname );
+	return;
+}
+
 void encoding()
 {
 	if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->play_radio_youtube ) ) )
 	{
-		//youtube ffmpeg
-		//ffmpeg -i input.mov -c:v libx264 -preset slow -crf 18 -c:a libvorbis -q:a 5 -pix_fmt yuv420p output.mkv
-
-
+		encode_mencoder();
 	} else {
 		gchar *commandline;
 		commandline = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->play_entry_custom ) ) );
@@ -624,6 +731,88 @@ void encoding()
 		g_sprintf( commandline, "%s %s\n", commandline, glcvideofile );
 		system( commandline );
 	}
+}
+
+int get_pa_sources()
+{
+	/* get pulseaudio sources
+	 * with system(), and fill
+	 * the combobox */
+
+	gchar *commandline="pacmd list-sources | grep name:";
+
+	/* Open the command for reading. */
+	FILE *fp;
+	fp = popen( commandline, "r");
+	if (fp == NULL)
+	{
+		printf("Failed to run command\n" );
+		exit(1);
+	}
+	/* read sources, fill combo */
+	GtkListStore *liststore = gtk_list_store_new( 1, G_TYPE_STRING );
+	gchar line[256];
+	gchar pa_source[256];
+	/* Read the output a line at a time - output it. */
+	while ( fgets( line, sizeof(line)-1, fp) != NULL)
+	{
+		if( sscanf( line, " name: <%51[^>]", pa_source ) == 1 )
+			gtk_list_store_insert_with_values( liststore, NULL, -1,
+								0, pa_source, -1 );
+
+	}
+	/* close */
+	pclose(fp);
+	/* set combo */
+	gtk_combo_box_set_model ( GTK_COMBO_BOX( data->basic_combo_devices ), GTK_TREE_MODEL( liststore ) );
+	gtk_combo_box_set_active( GTK_COMBO_BOX( data->basic_combo_devices ), 0 );
+	g_object_unref(liststore);
+	return(0);
+}
+
+void pdata_basic()
+{
+	gtk_entry_set_text( GTK_ENTRY( data->basic_entry_outfile ), pdata->outfile );
+	gtk_entry_set_text( GTK_ENTRY( data->basic_entry_appfile ), pdata->application );
+	gtk_entry_set_text( GTK_ENTRY( data->basic_entry_hotkey ), pdata->hotkey );
+	gtk_spin_button_set_value( GTK_SPIN_BUTTON( data->basic_spin_resize ), pdata->resize );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->basic_check_draw ), pdata->draw );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->basic_check_pulse ), pdata->pulse );
+	gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON( data->basic_check_disable ), pdata->disable );
+	get_pa_sources( data->basic_combo_devices );
+	/* check default value to combo */
+	gtk_combo_box_set_id_column( GTK_COMBO_BOX( data->basic_combo_devices ), 0 );
+	const gchar *combo_str;
+	int i, mark=0;
+	for( i=0;mark!=-1;i++ )
+	{
+		gtk_combo_box_set_active(GTK_COMBO_BOX( data->basic_combo_devices ), i );
+		combo_str = gtk_combo_box_get_active_id( GTK_COMBO_BOX( data->basic_combo_devices ) );
+		if( g_strcmp0( combo_str, pdata->devices ) == 0 )
+			mark = -1; //found, finish the loop
+		else
+			mark = gtk_combo_box_get_active( GTK_COMBO_BOX( data->basic_combo_devices ) );
+	}
+}
+
+void basic_pdata()
+{
+	pdata->outfile = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->basic_entry_outfile ) ) );
+	pdata->application = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->basic_entry_appfile ) ) );
+	pdata->hotkey = g_strdup( gtk_entry_get_text( GTK_ENTRY( data->basic_entry_hotkey ) ) );
+	pdata->resize = gtk_spin_button_get_value( GTK_SPIN_BUTTON( data->basic_spin_resize ) );
+	pdata->draw = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->basic_check_draw ) );
+	if( pdata->draw == TRUE )
+		pdata->capbuf = 2;
+	pdata->pulse = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->basic_check_pulse ) );
+	pdata->disable = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->basic_check_disable ) );
+	/* get device name
+	 * selected in combo */
+	gtk_combo_box_set_id_column( GTK_COMBO_BOX( data->basic_combo_devices ), 0 );
+	const gchar *combostr = gtk_combo_box_get_active_id( GTK_COMBO_BOX( data->basic_combo_devices ) );
+	if( combostr == NULL )
+		combostr = "";
+	pdata->devices = g_strdup( combostr );
 }
 
 

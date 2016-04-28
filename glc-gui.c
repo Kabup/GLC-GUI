@@ -102,9 +102,17 @@ int main(int argc, char **argv)
 		GW( rec_window );
 		GW( rec_textview );
 		GW( about_window );
+		/* basic window */
 		GW( basic_window );
-		GW( basic_entry_filedir );
-		GW( basic_filedialog );
+		GW( basic_entry_outfile );
+		GW( basic_entry_appfile );
+		GW( basic_entry_hotkey );
+		GW( basic_spin_resize );
+		GW( basic_check_draw );
+		GW( basic_check_pulse );
+		GW( basic_combo_devices );
+		GW( basic_check_disable );
+		/* play window */
 		GW( play_window );
 		GW( play_entry_videofile );
 		GW( play_check_aoss );

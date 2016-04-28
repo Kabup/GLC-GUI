@@ -29,9 +29,14 @@ extern void on_rec_button_record_clicked();
 extern void on_about_window_show();
 extern void on_about_window_delete_event();
 extern void on_eventbox1_button_press_event();
+/* basic */
 extern void on_basic_window_delete_event();
 extern void on_basic_window_show();
-extern void on_basic_button_filedialog_clicked();
+extern void on_basic_button_filedialog1_clicked();
+extern void on_basic_button_filedialog2_clicked();
+extern void on_basic_button_cancel_clicked();
+extern void on_basic_button_ok_clicked();
+extern void on_basic_check_disable_toggled();
 /* play */
 extern void on_play_window_delete_event();
 extern void on_play_window_show();

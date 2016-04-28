@@ -37,11 +37,11 @@
 void on_main_window_show()
 {
 	/* fill combo */
-	read_config();
+	config_combo();
 
 	/* set combo, menu */
 	gtk_combo_box_set_active( GTK_COMBO_BOX( data->combo_profile ), 0 );
-	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->advanced_menu ), TRUE );
+	gtk_check_menu_item_set_active( GTK_CHECK_MENU_ITEM( data->basic_menu ), TRUE );
 }
 
 void on_main_window_destroy()
@@ -213,21 +213,6 @@ void on_eventbox1_button_press_event()
 	gtk_widget_hide( data->about_window );
 }
 
-void on_basic_window_delete_event()
-{
-	gtk_widget_hide( data->basic_window );
-}
-
-void on_basic_window_show()
-{
-	gtk_widget_show( data->basic_window );
-}
-
-void on_basic_button_filedialog_clicked()
-{
-	//teste
-}
-
 void on_play_window_delete_event()
 {
 	/* save data */
@@ -280,5 +265,77 @@ void on_filedialog_button_ok_clicked()
 	gtk_widget_hide( data->filedialog_window );
 }
 
+/* ************BASIC WINDOW***************/
+
+void on_basic_window_delete_event()
+{
+	gtk_widget_hide( data->basic_window );
+}
+
+void on_basic_window_show()
+{
+	pdata_basic();
+}
+
+void on_basic_button_filedialog1_clicked()
+{
+	GtkWidget *dialog;
+	dialog = gtk_file_chooser_dialog_new ("Select Directory",
+							GTK_WINDOW( data->basic_window ),
+							GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
+							"_Cancel",
+                            GTK_RESPONSE_CANCEL,
+                            "_Open",
+                            GTK_RESPONSE_ACCEPT,
+                            NULL );
+	if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_ACCEPT )
+	{
+		char *filename;
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		filename = gtk_file_chooser_get_filename (chooser);
+		gtk_entry_set_text( GTK_ENTRY( data->basic_entry_outfile ), filename );
+	}
+	gtk_widget_destroy (dialog);
+}
+
+void on_basic_button_filedialog2_clicked()
+{
+	GtkWidget *dialog;
+	dialog = gtk_file_chooser_dialog_new ("Select Application/Game",
+							GTK_WINDOW( data->basic_window ),
+							GTK_FILE_CHOOSER_ACTION_OPEN,
+							"_Cancel",
+                            GTK_RESPONSE_CANCEL,
+                            "_Open",
+                            GTK_RESPONSE_ACCEPT,
+                            NULL );
+	if( gtk_dialog_run( GTK_DIALOG( dialog ) ) == GTK_RESPONSE_ACCEPT )
+	{
+		char *filename;
+		GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+		filename = gtk_file_chooser_get_filename (chooser);
+		gtk_entry_set_text( GTK_ENTRY( data->basic_entry_appfile ), filename );
+	}
+	gtk_widget_destroy (dialog);
+}
+
+void on_basic_button_cancel_clicked()
+{
+	on_basic_window_delete_event();
+}
+
+void on_basic_button_ok_clicked()
+{
+	basic_pdata();
+	pdata_config();
+
+	on_basic_window_delete_event();
+}
+
+void on_basic_check_disable_toggled()
+{
+	/* check 'disable' option, disable widgets */
+	//if( gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON( data->basic_check_disable ) ) == TRUE )
+}
 
 
