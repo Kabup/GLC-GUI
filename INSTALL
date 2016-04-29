@@ -16,13 +16,13 @@ For a quick install, just follow these steps:
 open a terminal, and cd to the dir where you download
 the files.
 tar -xzvf glc-gui.version.bz
-cd glc-gui
+cd glc-gui/src
 make
-then, just execute glc-gui from the terminal.
-(you can clean up the directory by typing:
-rm *.o *.c *.h README CHANGELOG INSTALL
-and move all the directory
-to another place, if you want).
+sudo make install DESTDIR=<dirtoinstall> (ex: /usr/local)
+
+then, just execute <installdir>/glc-gui from the terminal
+( or just glc-gui, if it's in the path).
+You can remove all the source dir if you want.
 
 PS: glc-gui is a interface only, the
 real job is done by glc-capture, you
@@ -37,3 +37,4 @@ with pulseaudio, from swick:
 PS2: please, if you find any bugs, or a
 missing feature, leave me a message in
 github <https://github.com/Kabup/GLC-GUI>
+

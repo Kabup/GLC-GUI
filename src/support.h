@@ -6,15 +6,15 @@
 #include <gtk/gtk.h>
 #include <glib/gprintf.h> /* g_printf */
 
+extern gint videotrack;
+extern gint audiotrack;
+gint videotrack, audiotrack;
+
 /* Convenience macros for obtaining objects from UI file */
 #define CH_GET_OBJECT( builder, name, type, data ) \
 	data->name = type( gtk_builder_get_object( builder, #name ) )
 #define CH_GET_WIDGET( builder, name, data ) \
 	CH_GET_OBJECT( builder, name, GTK_WIDGET, data )
-
-extern gint videotrack;
-extern gint audiotrack;
-gint videotrack, audiotrack;
 
 /* Main data structure definition */
 typedef struct _ChData ChData;
@@ -23,14 +23,14 @@ struct _ChData
 	/* Widgets */
 	GtkWidget *main_window;  	/* Main application window */
 	GtkWidget *combo_profile;   /* profile combobox */
-	GtkWidget *basic_menu;
-	GtkWidget *advanced_menu;
 	GtkWidget *main_button_rec;
 	GtkWidget *main_button_edit;
 	GtkWidget *main_button_new;
 	GtkWidget *main_button_play;
 	GtkWidget *prof_window;
 	GtkWidget *text_profile;
+	GtkWidget *basic_menu;
+	GtkWidget *advanced_menu;
 	/* edit window */
 	GtkWidget *edit_window;
 	GtkWidget *edit_label;

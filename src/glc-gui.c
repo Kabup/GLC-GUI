@@ -28,7 +28,7 @@
 #include "glc-config.h"
 #include "callbacks.h"
 
-#define UI_FILE "glc-gui.glade"
+#define UI_FILE "../share/glc-gui/glc-gui.glade"
 
 int main(int argc, char **argv)
 {
@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 	/* load glade UI file */
 	builder = gtk_builder_new();
 	if( ! gtk_builder_add_from_file( builder, UI_FILE, &error ) )
+	//if( ! gtk_builder_add_from_string( builder, glade_ui, -1, &error ) )
 	{
 		g_warning( "%s", error->message );
 		g_free( error );

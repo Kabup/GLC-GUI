@@ -25,7 +25,7 @@
               <object class="GtkImage" id="image5">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="pixbuf">data/media/about.png</property>
+                <property name="pixbuf">about.png</property>
               </object>
             </child>
           </object>
@@ -1993,41 +1993,41 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="ypad">10</property>
-    <property name="pixbuf">data/media/record.png</property>
+    <property name="pixbuf">record.png</property>
   </object>
   <object class="GtkImage" id="image2">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="ypad">10</property>
-    <property name="pixbuf">data/media/edit.png</property>
+    <property name="pixbuf">edit.png</property>
   </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="ypad">10</property>
-    <property name="pixbuf">data/media/new.png</property>
+    <property name="pixbuf">new.png</property>
   </object>
   <object class="GtkImage" id="image4">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="ypad">10</property>
-    <property name="pixbuf">data/media/play.png</property>
+    <property name="pixbuf">play.png</property>
     <property name="icon-size">6</property>
   </object>
   <object class="GtkImage" id="image6">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">data/media/filedialog.jpg</property>
+    <property name="pixbuf">filedialog.jpg</property>
   </object>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">data/media/filedialog.jpg</property>
+    <property name="pixbuf">filedialog.jpg</property>
   </object>
   <object class="GtkImage" id="image8">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">data/media/filedialog.jpg</property>
+    <property name="pixbuf">filedialog.jpg</property>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -2035,7 +2035,7 @@
     <property name="window_position">center</property>
     <property name="default_width">600</property>
     <property name="default_height">150</property>
-    <property name="icon">data/media/glc-gui.png</property>
+    <property name="icon">glc-gui.png</property>
     <signal name="destroy" handler="on_main_window_destroy" swapped="no"/>
     <signal name="show" handler="on_main_window_show" swapped="no"/>
     <child>
