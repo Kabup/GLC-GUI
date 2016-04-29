@@ -1,0 +1,32 @@
+28-04-2016 0.0.8
+-make install tested, working
+-removed auto-hotkey, buggy
+
+26-04-2016 0.0.7
+-basic window working
+-pulseaudio devices working
+
+25-04-2016 0.0.6
+-play window now fully working
+-encoding working
+-minor bugs fix
+
+24-04-2016 0.0.5
+-play/encode window created
+-add functionality to play window
+
+23-04-2016 0.0.3
+-fix active profile in combobox
+-created about window
+-better icons
+-'about' menu
+-'basic/advanced options' menu
+-'basic window' created
+
+22-04-2016 0.0.2
+-major reestruct of routines
+-better error handling
+-cleaning of the code
+
+21-04-2016 0.0.1
+initial release
